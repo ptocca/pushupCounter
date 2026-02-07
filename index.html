@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Pushup Counter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main Counter Screen -->
+    <div id="counterScreen" class="screen active">
+        <header>
+            <button id="viewHistoryBtn" class="history-btn">📊 History</button>
+            <button id="endSessionBtn" class="end-session-btn">End Session</button>
+        </header>
+
+        <main class="counter-container">
+            <div class="counter-display">
+                <div class="counter-number" id="counterNumber">0</div>
+                <div class="counter-label">pushups</div>
+            </div>
+
+            <button id="countBtn" class="count-button">
+                <span class="tap-instruction">TAP</span>
+            </button>
+
+            <div class="timer-display" id="timerDisplay">0:00</div>
+        </main>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h2>Clear History?</h2>
+            <p class="confirm-message">This will permanently delete all session history. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="confirmClearBtn" class="btn btn-discard">Clear All</button>
+                <button id="cancelClearBtn" class="btn btn-accept">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Session Review Modal -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <h2>Session Complete!</h2>
+            <div class="session-summary">
+                <div class="summary-count" id="summaryCount">0</div>
+                <div class="summary-label">pushups</div>
+                <div class="summary-duration" id="summaryDuration">0:00</div>
+            </div>
+
+            <div class="edit-section">
+                <label for="editCount">Edit count:</label>
+                <input type="number" id="editCount" min="0" class="edit-input">
+            </div>
+
+            <div class="modal-actions">
+                <button id="acceptBtn" class="btn btn-accept">✓ Accept</button>
+                <button id="discardBtn" class="btn btn-discard">✗ Discard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Screen -->
+    <div id="historyScreen" class="screen">
+        <header class="history-header">
+            <button id="backBtn" class="back-btn">← Back</button>
+            <h1>Session History</h1>
+            <div class="history-actions">
+                <button id="exportBtn" class="export-btn">💾 Export</button>
+                <button id="clearHistoryBtn" class="clear-btn">🗑️ Clear</button>
+            </div>
+        </header>
+
+        <main class="history-container">
+            <div id="historyList" class="history-list">
+                <!-- Sessions will be populated here -->
+            </div>
+            <div id="emptyHistory" class="empty-state">
+                <p>No sessions yet</p>
+                <p class="empty-subtitle">Start your first workout!</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
