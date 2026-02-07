@@ -28,6 +28,25 @@
             </button>
 
             <div class="timer-display" id="timerDisplay">0:00</div>
+
+            <div class="stats-display" id="statsDisplay">
+                <div class="stat-item">
+                    <div class="stat-label">Total</div>
+                    <div class="stat-value" id="totalPushups">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Avg/Session</div>
+                    <div class="stat-value" id="avgPerSession">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Avg/Day</div>
+                    <div class="stat-value" id="avgPerDay">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Sessions/Day</div>
+                    <div class="stat-value" id="sessionsPerDay">0</div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -77,6 +96,13 @@
         </header>
 
         <main class="history-container">
+            <div id="chartContainer" class="chart-container">
+                <h3 class="chart-title">Pushups per Day</h3>
+                <div id="chart" class="chart">
+                    <!-- Chart will be populated here -->
+                </div>
+            </div>
+
             <div id="historyList" class="history-list">
                 <!-- Sessions will be populated here -->
             </div>

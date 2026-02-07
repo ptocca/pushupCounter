@@ -33,11 +33,21 @@ const exportBtn = document.getElementById('exportBtn');
 const confirmClearBtn = document.getElementById('confirmClearBtn');
 const cancelClearBtn = document.getElementById('cancelClearBtn');
 
+const statsDisplay = document.getElementById('statsDisplay');
+const totalPushups = document.getElementById('totalPushups');
+const avgPerSession = document.getElementById('avgPerSession');
+const avgPerDay = document.getElementById('avgPerDay');
+const sessionsPerDay = document.getElementById('sessionsPerDay');
+
+const chartContainer = document.getElementById('chartContainer');
+const chart = document.getElementById('chart');
+
 // Initialize app
 function init() {
     loadSessions();
     setupAudio();
     attachEventListeners();
+    updateStats();
 }
 
 // Audio setup
@@ -165,6 +175,7 @@ function acceptSession() {
 
         sessions.unshift(session); // Add to beginning
         saveSessions();
+        updateStats();
     }
 
     resetCounter();
@@ -199,6 +210,7 @@ function showHistory() {
     counterScreen.classList.remove('active');
     historyScreen.classList.add('active');
     renderHistory();
+    renderChart();
 }
 
 function showCounter() {
@@ -281,6 +293,8 @@ function clearHistory() {
     saveSessions();
     hideClearConfirmation();
     renderHistory();
+    renderChart();
+    updateStats();
 }
 
 function exportHistory() {
@@ -325,6 +339,95 @@ function exportHistory() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+// Stats functions
+function updateStats() {
+    if (sessions.length === 0) {
+        totalPushups.textContent = '0';
+        avgPerSession.textContent = '0';
+        avgPerDay.textContent = '0';
+        sessionsPerDay.textContent = '0';
+        return;
+    }
+
+    // Calculate total pushups
+    const total = sessions.reduce((sum, session) => sum + session.count, 0);
+    totalPushups.textContent = total;
+
+    // Calculate average per session
+    const avgSession = Math.round(total / sessions.length);
+    avgPerSession.textContent = avgSession;
+
+    // Get unique days
+    const uniqueDays = getUniqueDays();
+    const numDays = uniqueDays.length;
+
+    // Calculate average per day
+    const avgDay = Math.round(total / numDays);
+    avgPerDay.textContent = avgDay;
+
+    // Calculate sessions per day
+    const sessDay = (sessions.length / numDays).toFixed(1);
+    sessionsPerDay.textContent = sessDay;
+}
+
+function getUniqueDays() {
+    const daySet = new Set();
+    sessions.forEach(session => {
+        const date = new Date(session.timestamp);
+        const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+        daySet.add(dayKey);
+    });
+    return Array.from(daySet);
+}
+
+function getDailyTotals() {
+    const dailyMap = new Map();
+
+    sessions.forEach(session => {
+        const date = new Date(session.timestamp);
+        const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const displayDate = `${date.getMonth() + 1}/${date.getDate()}`;
+
+        if (dailyMap.has(dayKey)) {
+            dailyMap.get(dayKey).count += session.count;
+        } else {
+            dailyMap.set(dayKey, {
+                count: session.count,
+                displayDate: displayDate,
+                timestamp: date.getTime()
+            });
+        }
+    });
+
+    // Sort by date (most recent last) and limit to last 14 days
+    return Array.from(dailyMap.values())
+        .sort((a, b) => a.timestamp - b.timestamp)
+        .slice(-14);
+}
+
+function renderChart() {
+    if (sessions.length === 0) {
+        chartContainer.style.display = 'none';
+        return;
+    }
+
+    chartContainer.style.display = 'block';
+    const dailyTotals = getDailyTotals();
+    const maxCount = Math.max(...dailyTotals.map(d => d.count));
+
+    chart.innerHTML = dailyTotals.map(day => {
+        const heightPercent = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+
+        return `
+            <div class="chart-bar-container">
+                <div class="chart-value">${day.count}</div>
+                <div class="chart-bar" style="height: ${heightPercent}%"></div>
+                <div class="chart-label">${day.displayDate}</div>
+            </div>
+        `;
+    }).join('');
 }
 
 // Initialize on load
