@@ -41,13 +41,15 @@ A mobile-optimized static web app for tracking pushup sessions with audio feedba
 - **Web Audio API** - Beep sound generation
 - **LocalStorage API** - Client-side data persistence
 - **Blob API** - TSV file export
+- **Service Worker** - Offline caching and PWA support
+- **Web App Manifest** - Installable on home screen
 
 ## 📱 Mobile Optimized
 
 - Touch-friendly large buttons
 - No zoom/scroll interference
-- Works offline once loaded
-- Installable as PWA (add to home screen)
+- Works fully offline (service worker caches all assets)
+- Installable as PWA — "Add to Home Screen" on Android/iOS
 - Timer positioned to avoid Android navigation buttons
 
 ## 🔧 Installation
@@ -82,10 +84,8 @@ The TSV export includes:
 ## 🎯 Future Features
 
 - Voice command to end session ("STOP!")
-- Statistics dashboard (averages, totals, charts)
 - Multi-exercise support
 - Custom beep sounds
-- Progressive Web App (PWA) manifest
 
 ## 📄 License
 
