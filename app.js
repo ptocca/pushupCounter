@@ -84,7 +84,11 @@ function playBeep() {
 
 // Event listeners
 function attachEventListeners() {
-    countBtn.addEventListener('click', incrementCount);
+    countBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        incrementCount();
+    }, { passive: false });
+    countBtn.addEventListener('click', incrementCount); // fallback for non-touch
     endSessionBtn.addEventListener('click', endSession);
     viewHistoryBtn.addEventListener('click', showHistory);
     backBtn.addEventListener('click', showCounter);
@@ -356,15 +360,18 @@ function updateStats() {
     totalPushups.textContent = total;
 
     // Calculate average per session
-    const avgSession = Math.round(total / sessions.length);
+    const avgSession = (total / sessions.length).toFixed(1);
     avgPerSession.textContent = avgSession;
 
-    // Get unique days
-    const uniqueDays = getUniqueDays();
-    const numDays = uniqueDays.length;
+    // Days elapsed since first session (inclusive of today)
+    const firstSession = new Date(sessions[sessions.length - 1].timestamp);
+    const firstDay = new Date(firstSession.getFullYear(), firstSession.getMonth(), firstSession.getDate());
+    const today = new Date();
+    const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const numDays = Math.floor((todayDay - firstDay) / 86400000) + 1;
 
     // Calculate average per day
-    const avgDay = Math.round(total / numDays);
+    const avgDay = (total / numDays).toFixed(1);
     avgPerDay.textContent = avgDay;
 
     // Calculate sessions per day

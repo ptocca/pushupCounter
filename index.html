@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
@@ -25,31 +25,31 @@
                 <div class="counter-label">pushups</div>
             </div>
 
+            <div class="timer-display" id="timerDisplay">0:00</div>
+
             <button id="countBtn" class="count-button">
                 <span class="tap-instruction">TAP</span>
             </button>
-
-            <div class="timer-display" id="timerDisplay">0:00</div>
-
-            <div class="stats-display" id="statsDisplay">
-                <div class="stat-item">
-                    <div class="stat-label">Total</div>
-                    <div class="stat-value" id="totalPushups">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Avg/Session</div>
-                    <div class="stat-value" id="avgPerSession">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Avg/Day</div>
-                    <div class="stat-value" id="avgPerDay">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Sessions/Day</div>
-                    <div class="stat-value" id="sessionsPerDay">0</div>
-                </div>
-            </div>
         </main>
+
+        <div class="stats-display" id="statsDisplay">
+            <div class="stat-item">
+                <div class="stat-label">Total</div>
+                <div class="stat-value" id="totalPushups">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Avg/Session</div>
+                <div class="stat-value" id="avgPerSession">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Avg/Day</div>
+                <div class="stat-value" id="avgPerDay">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Sessions/Day</div>
+                <div class="stat-value" id="sessionsPerDay">0</div>
+            </div>
+        </div>
     </div>
 
     <!-- Confirmation Modal -->
