@@ -83,12 +83,23 @@ function playBeep() {
 }
 
 // Event listeners
+let lastTapTime = 0;
+const TAP_DEBOUNCE_MS = 500;
+
 function attachEventListeners() {
     countBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
+        const now = Date.now();
+        if (now - lastTapTime < TAP_DEBOUNCE_MS) return;
+        lastTapTime = now;
         incrementCount();
     }, { passive: false });
-    countBtn.addEventListener('click', incrementCount); // fallback for non-touch
+    countBtn.addEventListener('click', (e) => { // fallback for non-touch
+        const now = Date.now();
+        if (now - lastTapTime < TAP_DEBOUNCE_MS) return;
+        lastTapTime = now;
+        incrementCount();
+    });
     endSessionBtn.addEventListener('click', endSession);
     viewHistoryBtn.addEventListener('click', showHistory);
     backBtn.addEventListener('click', showCounter);

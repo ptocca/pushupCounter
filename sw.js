@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pushup-counter-v3';
+const CACHE_NAME = 'pushup-counter-v4';
 const ASSETS = [
   './index.html',
   './styles.css',
