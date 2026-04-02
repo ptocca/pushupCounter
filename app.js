@@ -109,6 +109,8 @@ function attachEventListeners() {
     exportBtn.addEventListener('click', exportHistory);
     confirmClearBtn.addEventListener('click', clearHistory);
     cancelClearBtn.addEventListener('click', hideClearConfirmation);
+    document.getElementById('prevMonthBtn').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('nextMonthBtn').addEventListener('click', () => changeMonth(1));
 
     // Update accept button when edit input changes
     editCount.addEventListener('input', updateAcceptButton);
@@ -220,12 +222,19 @@ function updateAcceptButton() {
     }
 }
 
+// Month navigation state
+let viewYear = new Date().getFullYear();
+let viewMonth = new Date().getMonth(); // 0-indexed
+
 // Navigation
 function showHistory() {
+    // Reset to current month each time we open history
+    const now = new Date();
+    viewYear = now.getFullYear();
+    viewMonth = now.getMonth();
     counterScreen.classList.remove('active');
     historyScreen.classList.add('active');
-    renderHistory();
-    renderChart();
+    renderMonthView();
 }
 
 function showCounter() {
@@ -233,21 +242,65 @@ function showCounter() {
     counterScreen.classList.add('active');
 }
 
+function changeMonth(delta) {
+    viewMonth += delta;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    else if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    renderMonthView();
+}
+
+function renderMonthView() {
+    updateMonthLabel();
+    renderHistory();
+    renderChart();
+    updateNextMonthBtn();
+}
+
+function updateMonthLabel() {
+    const label = new Date(viewYear, viewMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    document.getElementById('monthLabel').textContent = label;
+}
+
+function updateNextMonthBtn() {
+    const now = new Date();
+    const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
+    document.getElementById('nextMonthBtn').disabled = isCurrentMonth;
+}
+
+function getSessionsForMonth(year, month) {
+    return sessions.filter(s => {
+        const d = new Date(s.timestamp);
+        return d.getFullYear() === year && d.getMonth() === month;
+    });
+}
+
 // History functions
 function renderHistory() {
-    if (sessions.length === 0) {
+    const monthSessions = getSessionsForMonth(viewYear, viewMonth);
+    const monthSummary = document.getElementById('monthSummary');
+
+    if (monthSessions.length === 0) {
         historyList.style.display = 'none';
         emptyHistory.style.display = 'block';
+        monthSummary.style.display = 'none';
         return;
     }
 
     historyList.style.display = 'flex';
     emptyHistory.style.display = 'none';
 
-    historyList.innerHTML = sessions.map((session, index) => {
+    // Month summary
+    const monthTotal = monthSessions.reduce((sum, s) => sum + s.count, 0);
+    monthSummary.style.display = 'flex';
+    monthSummary.innerHTML = `
+        <div class="stat-item"><div class="stat-label">Pushups</div><div class="stat-value">${monthTotal}</div></div>
+        <div class="stat-item"><div class="stat-label">Sessions</div><div class="stat-value">${monthSessions.length}</div></div>
+        <div class="stat-item"><div class="stat-label">Avg/Session</div><div class="stat-value">${(monthTotal / monthSessions.length).toFixed(1)}</div></div>
+    `;
+
+    historyList.innerHTML = monthSessions.map(session => {
         const date = new Date(session.timestamp);
         const dateStr = date.toLocaleDateString('en-US', {
-            year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
@@ -307,8 +360,7 @@ function clearHistory() {
     sessions = [];
     saveSessions();
     hideClearConfirmation();
-    renderHistory();
-    renderChart();
+    renderMonthView();
     updateStats();
 }
 
@@ -374,12 +426,12 @@ function updateStats() {
     const avgSession = (total / sessions.length).toFixed(1);
     avgPerSession.textContent = avgSession;
 
-    // Days elapsed since first session (inclusive of today)
+    // Days elapsed since first session (inclusive of today), using UTC to avoid DST skew
     const firstSession = new Date(sessions[sessions.length - 1].timestamp);
-    const firstDay = new Date(firstSession.getFullYear(), firstSession.getMonth(), firstSession.getDate());
     const today = new Date();
-    const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const numDays = Math.floor((todayDay - firstDay) / 86400000) + 1;
+    const firstDayUTC = Date.UTC(firstSession.getFullYear(), firstSession.getMonth(), firstSession.getDate());
+    const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+    const numDays = Math.round((todayUTC - firstDayUTC) / 86400000) + 1;
 
     // Calculate average per day
     const avgDay = (total / numDays).toFixed(1);
@@ -390,59 +442,48 @@ function updateStats() {
     sessionsPerDay.textContent = sessDay;
 }
 
-function getUniqueDays() {
-    const daySet = new Set();
-    sessions.forEach(session => {
-        const date = new Date(session.timestamp);
-        const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
-        daySet.add(dayKey);
-    });
-    return Array.from(daySet);
-}
+function getDailyTotalsForMonth(year, month) {
+    const monthSessions = getSessionsForMonth(year, month);
 
-function getDailyTotals() {
+    // Build a map of day -> count
     const dailyMap = new Map();
-
-    sessions.forEach(session => {
-        const date = new Date(session.timestamp);
-        const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        const displayDate = `${date.getMonth() + 1}/${date.getDate()}`;
-
-        if (dailyMap.has(dayKey)) {
-            dailyMap.get(dayKey).count += session.count;
-        } else {
-            dailyMap.set(dayKey, {
-                count: session.count,
-                displayDate: displayDate,
-                timestamp: date.getTime()
-            });
-        }
+    monthSessions.forEach(session => {
+        const day = new Date(session.timestamp).getDate();
+        dailyMap.set(day, (dailyMap.get(day) || 0) + session.count);
     });
 
-    // Sort by date (most recent last) and limit to last 14 days
-    return Array.from(dailyMap.values())
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .slice(-14);
+    // Determine range: all days up to last day of month (or today if current month)
+    const now = new Date();
+    const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+    const lastDay = isCurrentMonth ? now.getDate() : new Date(year, month + 1, 0).getDate();
+
+    const result = [];
+    for (let d = 1; d <= lastDay; d++) {
+        result.push({ day: d, count: dailyMap.get(d) || 0 });
+    }
+    return result;
 }
 
 function renderChart() {
-    if (sessions.length === 0) {
+    const dailyTotals = getDailyTotalsForMonth(viewYear, viewMonth);
+    const monthSessions = getSessionsForMonth(viewYear, viewMonth);
+
+    if (monthSessions.length === 0) {
         chartContainer.style.display = 'none';
         return;
     }
 
     chartContainer.style.display = 'block';
-    const dailyTotals = getDailyTotals();
-    const maxCount = Math.max(...dailyTotals.map(d => d.count));
+    const maxCount = Math.max(...dailyTotals.map(d => d.count), 1);
 
     chart.innerHTML = dailyTotals.map(day => {
-        const heightPercent = maxCount > 0 ? (day.count / maxCount) * 100 : 0;
+        const heightPercent = (day.count / maxCount) * 100;
 
         return `
             <div class="chart-bar-container">
-                <div class="chart-value">${day.count}</div>
-                <div class="chart-bar" style="height: ${heightPercent}%"></div>
-                <div class="chart-label">${day.displayDate}</div>
+                <div class="chart-value">${day.count || ''}</div>
+                <div class="chart-bar${day.count === 0 ? ' chart-bar-empty' : ''}" style="height: ${Math.max(heightPercent, day.count === 0 ? 1 : 2)}%"></div>
+                <div class="chart-label">${day.day}</div>
             </div>
         `;
     }).join('');

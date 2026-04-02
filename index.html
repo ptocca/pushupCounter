@@ -98,19 +98,26 @@
         </header>
 
         <main class="history-container">
+            <div class="month-nav">
+                <button id="prevMonthBtn" class="month-nav-btn">◀</button>
+                <span id="monthLabel" class="month-label">April 2026</span>
+                <button id="nextMonthBtn" class="month-nav-btn">▶</button>
+            </div>
+
             <div id="chartContainer" class="chart-container">
-                <h3 class="chart-title">Pushups per Day</h3>
                 <div id="chart" class="chart">
                     <!-- Chart will be populated here -->
                 </div>
             </div>
 
+            <div id="monthSummary" class="month-summary"></div>
+
             <div id="historyList" class="history-list">
                 <!-- Sessions will be populated here -->
             </div>
             <div id="emptyHistory" class="empty-state">
-                <p>No sessions yet</p>
-                <p class="empty-subtitle">Start your first workout!</p>
+                <p>No sessions this month</p>
+                <p class="empty-subtitle">Keep pushing!</p>
             </div>
         </main>
     </div>
