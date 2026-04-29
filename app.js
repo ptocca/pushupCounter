@@ -289,35 +289,32 @@ function renderHistory() {
     historyList.style.display = 'flex';
     emptyHistory.style.display = 'none';
 
-    // Month summary
     const monthTotal = monthSessions.reduce((sum, s) => sum + s.count, 0);
+    const now = new Date();
+    const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
+    const numDaysInPeriod = isCurrentMonth ? now.getDate() : new Date(viewYear, viewMonth + 1, 0).getDate();
+
     monthSummary.style.display = 'flex';
     monthSummary.innerHTML = `
         <div class="stat-item"><div class="stat-label">Pushups</div><div class="stat-value">${monthTotal}</div></div>
         <div class="stat-item"><div class="stat-label">Sessions</div><div class="stat-value">${monthSessions.length}</div></div>
         <div class="stat-item"><div class="stat-label">Avg/Session</div><div class="stat-value">${(monthTotal / monthSessions.length).toFixed(1)}</div></div>
+        <div class="stat-item"><div class="stat-label">Sessions/Day</div><div class="stat-value">${(monthSessions.length / numDaysInPeriod).toFixed(1)}</div></div>
+        <div class="stat-item"><div class="stat-label">Avg/Day</div><div class="stat-value">${(monthTotal / numDaysInPeriod).toFixed(1)}</div></div>
     `;
 
     historyList.innerHTML = monthSessions.map(session => {
         const date = new Date(session.timestamp);
-        const dateStr = date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric'
-        });
-        const timeStr = date.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         const durationStr = session.duration ? formatTime(session.duration) : '-';
 
         return `
             <div class="history-item">
-                <div class="history-item-left">
-                    <div class="history-count">${session.count}</div>
-                    <div class="history-date">${dateStr}</div>
-                    <div class="history-time">${timeStr}</div>
-                    <div class="history-duration">${durationStr}</div>
-                </div>
+                <span class="history-count">${session.count}</span>
+                <span class="history-date">${dateStr}</span>
+                <span class="history-time">${timeStr}</span>
+                <span class="history-duration">${durationStr}</span>
             </div>
         `;
     }).join('');
@@ -442,30 +439,29 @@ function updateStats() {
     sessionsPerDay.textContent = sessDay;
 }
 
-function getDailyTotalsForMonth(year, month) {
+function getDailySessionsForMonth(year, month) {
     const monthSessions = getSessionsForMonth(year, month);
 
-    // Build a map of day -> count
     const dailyMap = new Map();
     monthSessions.forEach(session => {
         const day = new Date(session.timestamp).getDate();
-        dailyMap.set(day, (dailyMap.get(day) || 0) + session.count);
+        if (!dailyMap.has(day)) dailyMap.set(day, []);
+        dailyMap.get(day).push(session.count);
     });
 
-    // Determine range: all days up to last day of month (or today if current month)
     const now = new Date();
     const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
     const lastDay = isCurrentMonth ? now.getDate() : new Date(year, month + 1, 0).getDate();
 
     const result = [];
     for (let d = 1; d <= lastDay; d++) {
-        result.push({ day: d, count: dailyMap.get(d) || 0 });
+        result.push({ day: d, sessions: dailyMap.get(d) || [] });
     }
     return result;
 }
 
 function renderChart() {
-    const dailyTotals = getDailyTotalsForMonth(viewYear, viewMonth);
+    const dailyData = getDailySessionsForMonth(viewYear, viewMonth);
     const monthSessions = getSessionsForMonth(viewYear, viewMonth);
 
     if (monthSessions.length === 0) {
@@ -474,16 +470,31 @@ function renderChart() {
     }
 
     chartContainer.style.display = 'block';
-    const maxCount = Math.max(...dailyTotals.map(d => d.count), 1);
+    const maxCount = Math.max(...dailyData.map(d => d.sessions.reduce((s, c) => s + c, 0)), 1);
 
-    chart.innerHTML = dailyTotals.map(day => {
-        const heightPercent = (day.count / maxCount) * 100;
+    chart.innerHTML = dailyData.map(({ day, sessions }) => {
+        const total = sessions.reduce((s, c) => s + c, 0);
+        const isEmpty = sessions.length === 0;
+        const spacerFlex = isEmpty ? maxCount : maxCount - total;
+
+        let barHtml;
+        if (isEmpty) {
+            barHtml = `<div class="chart-bar chart-bar-empty"></div>`;
+        } else if (sessions.length === 1) {
+            barHtml = `<div class="chart-bar" style="flex: ${total} 0 0"></div>`;
+        } else {
+            const segments = [...sessions].reverse().map(count =>
+                `<div class="chart-bar-segment" style="flex: ${count} 0 0"></div>`
+            ).join('');
+            barHtml = `<div class="chart-bar-stack" style="flex: ${total} 0 0">${segments}</div>`;
+        }
 
         return `
             <div class="chart-bar-container">
-                <div class="chart-value">${day.count || ''}</div>
-                <div class="chart-bar${day.count === 0 ? ' chart-bar-empty' : ''}" style="height: ${Math.max(heightPercent, day.count === 0 ? 1 : 2)}%"></div>
-                <div class="chart-label">${day.day}</div>
+                <div class="chart-value">${total || ''}</div>
+                <div class="chart-spacer" style="flex: ${spacerFlex} 1 0"></div>
+                ${barHtml}
+                <div class="chart-label">${day}</div>
             </div>
         `;
     }).join('');

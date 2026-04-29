@@ -450,9 +450,15 @@ header h1 {
 /* Month Summary */
 .month-summary {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-around;
     padding: 0.5rem 1rem;
     margin-bottom: 0.5rem;
+    row-gap: 0.5rem;
+}
+
+.month-summary .stat-item {
+    flex: 0 0 33%;
 }
 
 /* Chart */
@@ -479,23 +485,37 @@ header h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
     height: 100%;
     min-width: 0;
+}
+
+.chart-spacer {
+    width: 100%;
 }
 
 .chart-bar {
     width: 100%;
     background: linear-gradient(to top, var(--accent), var(--success));
     border-radius: 3px 3px 0 0;
-    transition: all 0.3s ease;
-    position: relative;
-    min-height: 2px;
 }
 
 .chart-bar-empty {
     background: var(--secondary);
-    min-height: 1px;
+    flex: 0 0 1px;
+}
+
+.chart-bar-stack {
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 1px;
+}
+
+.chart-bar-segment {
+    width: 100%;
+    background: linear-gradient(to top, var(--accent), var(--success));
+    border-radius: 3px 3px 0 0;
+    min-height: 2px;
 }
 
 .chart-value {
@@ -521,23 +541,18 @@ header h1 {
 .history-item {
     background: var(--primary);
     border-radius: 12px;
-    padding: 1.25rem;
+    padding: 0.75rem 1.25rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 0.75rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.history-item-left {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
 .history-count {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--success);
+    min-width: 2.5rem;
 }
 
 .history-date {
@@ -548,13 +563,13 @@ header h1 {
 .history-time {
     font-size: 0.85rem;
     color: var(--text-muted);
+    flex: 1;
 }
 
 .history-duration {
-    font-size: 1.1rem;
+    font-size: 0.9rem;
     color: var(--accent);
     font-weight: 600;
-    margin-top: 0.25rem;
     font-variant-numeric: tabular-nums;
 }
 
